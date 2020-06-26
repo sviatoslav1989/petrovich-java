@@ -7,11 +7,20 @@ import com.mulya.beans.RuleBean;
 import com.mulya.enums.Case;
 import com.mulya.enums.Gender;
 import com.mulya.enums.NamePart;
+import org.apache.commons.io.Charsets;
+import org.apache.commons.io.IOUtils;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * User: mulya
@@ -19,11 +28,16 @@ import java.util.List;
  */
 public class PetrovichDeclinationMaker {
 
-	private static final String DEFAULT_PATH_TO_RULES_FILE = "src/main/resources/rules.json";
+	private static final String DEFAULT_PATH_TO_RULES_FILE = "rules.json";
+	private static final String PATH_TO_MAN_NAMES = "firstnames-man.txt";
+	private static final String PATH_TO_WOMAN_NAMES = "firstnames-woman.txt";
 	private static final String MODS_KEEP_IT_ALL_SYMBOL = ".";
 	private static final String MODS_REMOVE_LETTER_SYMBOL = "-";
 
 	private RootBean rootRulesBean;
+
+	private Set<String> manNames;
+	private Set<String> womanNames;
 
 	public GenderCurryedMaker male = new GenderCurryedMaker(Gender.MALE);
 	public GenderCurryedMaker female = new GenderCurryedMaker(Gender.FEMALE);
@@ -31,7 +45,26 @@ public class PetrovichDeclinationMaker {
 
 
 	private PetrovichDeclinationMaker(String pathToRulesFile) throws IOException {
-		rootRulesBean = JSON.std.beanFrom(RootBean.class, new String(Files.readAllBytes(Paths.get(pathToRulesFile))));
+		try(InputStream is =  getClass().getClassLoader().getResourceAsStream(DEFAULT_PATH_TO_RULES_FILE);
+		) {
+			rootRulesBean = JSON.std.beanFrom(RootBean.class, new String(IOUtils.toByteArray(is),
+					StandardCharsets.UTF_8));
+		}
+
+		try(InputStream is =  getClass().getClassLoader().getResourceAsStream(PATH_TO_MAN_NAMES);
+		) {
+			List<String> names = IOUtils.readLines(is, StandardCharsets.UTF_8);
+			manNames = names.stream().map(name-> name.toLowerCase()).collect(Collectors.toSet());
+			System.out.println(manNames);
+		}
+
+		try(InputStream is =  getClass().getClassLoader().getResourceAsStream(PATH_TO_WOMAN_NAMES);
+		) {
+			List<String> names = IOUtils.readLines(is, StandardCharsets.UTF_8);
+			womanNames = names.stream().map(name-> name.toLowerCase()).collect(Collectors.toSet());
+		}
+
+
 	}
 
 	public static PetrovichDeclinationMaker getInstance() throws IOException {
@@ -40,6 +73,14 @@ public class PetrovichDeclinationMaker {
 
 	public static PetrovichDeclinationMaker getInstance(String pathToRulesFile) throws IOException {
 		return new PetrovichDeclinationMaker(pathToRulesFile);
+	}
+
+	public Gender tryToGuessGender(String firstname){
+		if(womanNames.contains(firstname.toLowerCase())){
+			return Gender.FEMALE;
+		}else {
+			return Gender.MALE;
+		}
 	}
 
 	public String make(NamePart namePart, Gender gender, Case caseToUse, String originalName) {
@@ -60,6 +101,7 @@ public class PetrovichDeclinationMaker {
 				nameBean = rootRulesBean.getMiddlename();
 				break;
 		}
+
 
 		RuleBean ruleToUse = null;
 		RuleBean exceptionRuleBean = findInRuleBeanList(nameBean.getExceptions(), gender, originalName);

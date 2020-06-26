@@ -4,6 +4,7 @@ import com.mulya.beans.RuleBean;
 import com.mulya.enums.Case;
 import com.mulya.enums.Gender;
 import com.mulya.enums.NamePart;
+import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -122,5 +123,11 @@ public class PetrovichDeclinationMakerTest {
 		assertEquals(maker.male.firstname().toGenitive("Дима"), "Димы");
 		assertEquals(maker.female.firstname().toGenitive("Ольга"), "Ольги");
 		assertEquals(maker.female.lastname().toGenitive("Маковецкая"), "Маковецкой");
+	}
+
+	@Test
+	public void test_guessGender(){
+		Assert.assertEquals(Gender.MALE, maker.tryToGuessGender("Дмитрий"));
+		Assert.assertEquals(Gender.FEMALE, maker.tryToGuessGender("Мария"));
 	}
 }
