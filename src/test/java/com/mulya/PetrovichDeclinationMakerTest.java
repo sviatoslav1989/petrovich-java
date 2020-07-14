@@ -126,6 +126,11 @@ public class PetrovichDeclinationMakerTest {
 	}
 
 	@Test
+	public void test_Pavel()throws Exception {
+		assertEquals(maker.male.firstname().toGenitive("Павел"), "Павла");
+	}
+
+	@Test
 	public void test_guessGender(){
 		Assert.assertEquals(Gender.MALE, maker.tryToGuessGender("Дмитрий"));
 		Assert.assertEquals(Gender.FEMALE, maker.tryToGuessGender("Мария"));

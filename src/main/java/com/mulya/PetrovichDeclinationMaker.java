@@ -55,7 +55,6 @@ public class PetrovichDeclinationMaker {
 		) {
 			List<String> names = IOUtils.readLines(is, StandardCharsets.UTF_8);
 			manNames = names.stream().map(name-> name.toLowerCase()).collect(Collectors.toSet());
-			System.out.println(manNames);
 		}
 
 		try(InputStream is =  getClass().getClassLoader().getResourceAsStream(PATH_TO_WOMAN_NAMES);
@@ -147,7 +146,7 @@ public class PetrovichDeclinationMaker {
 			out:
 			for(RuleBean ruleBean : ruleBeanList) {
 				for (String test : ruleBean.getTest()) {
-					if (originalName.endsWith(test)) {
+					if (originalName.toLowerCase().endsWith(test)) {
 						if (ruleBean.getGender().equals(Gender.ANDROGYNOUS.getValue())) {
 							result = ruleBean;
 							break out;
